@@ -30,6 +30,8 @@ import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 
 import org.apache.commons.lang.StringUtils;
+import org.jasig.portal.security.IPerson;
+import org.jasig.portal.security.IPersonManager;
 import org.jasig.portal.url.IPortalRequestUtils;
 import org.jasig.portal.url.IPortalUrlProvider;
 import org.slf4j.Logger;
@@ -47,7 +49,7 @@ import org.springframework.web.portlet.bind.annotation.RenderMapping;
  * renders a JSP at a location specified in the portlet definition (publish 
  * time).  This feature is very similar to the SimpleJspPortlet in the 
  * jasig-widget-portlets project, except portlets based on tech (1) are 
- * framework portlets, and (2) may access the native {@link IPortalUrlProvider} 
+ * framework portlets, and (2) may access the native {@link IPortalUrlProvider}
  * API.
  */
 @Controller
@@ -57,6 +59,7 @@ public final class JspInvokerPortletController implements ApplicationContextAwar
     private static final String CONTROLLER_PREFERENCE_PREFIX = JspInvokerPortletController.class.getSimpleName() + ".";
     private static final String VIEW_LOCATION_PREFERENCE = CONTROLLER_PREFERENCE_PREFIX + "viewLocation";
     private static final String BEANS_PREFERENCE = CONTROLLER_PREFERENCE_PREFIX + "beans";
+    public static final String PREF_SECURITY_ROLE_NAMES = CONTROLLER_PREFERENCE_PREFIX + "securityRolesToTest";
 
     private ApplicationContext applicationContext;
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -66,6 +69,9 @@ public final class JspInvokerPortletController implements ApplicationContextAwar
 
     @Autowired()
     private IPortalRequestUtils portalRequestUtils;
+
+    @Autowired
+    private IPersonManager personManager;
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) {
@@ -78,13 +84,19 @@ public final class JspInvokerPortletController implements ApplicationContextAwar
         final Map<String,Object> model = new HashMap<String, Object>();
 
         @SuppressWarnings("unchecked")
-        final Map<String,String> userInfo = (Map<String, String>) req.getAttribute(PortletRequest.USER_INFO);
+        final Map<String, String> userInfo = (Map<String, String>) req.getAttribute(PortletRequest.USER_INFO);
         model.put("userInfo", userInfo);
         logger.debug("Invoking with userInfo={}", userInfo);
+
+        // Determine if guest user.
+        IPerson person = personManager.getPerson(portalRequestUtils.getPortletHttpRequest(req));
+        model.put("authenticated", !person.isGuest());
 
         model.putAll(getBeans(req));
 
         model.putAll(getPreferences(req));
+
+        addSecurityRoleChecksToModel(req, model);
 
         final String viewLocation = getViewLocation(req);
         return new ModelAndView(viewLocation, model);
@@ -94,7 +106,7 @@ public final class JspInvokerPortletController implements ApplicationContextAwar
     private Map<String,Object> getBeans(PortletRequest req) {
         Map<String,Object> rslt = new HashMap<String,Object>();  // default
         PortletPreferences prefs = req.getPreferences();
-        String[] beanNames = prefs.getValues(BEANS_PREFERENCE, new String[] {});
+        String[] beanNames = prefs.getValues(BEANS_PREFERENCE, new String[]{});
         for (String name : beanNames) {
             Object bean = applicationContext.getBean(name);
             rslt.put(name, bean);
@@ -129,6 +141,20 @@ public final class JspInvokerPortletController implements ApplicationContextAwar
         }
         logger.debug("Invoking with viewLocation={}", rslt);
         return rslt;
+    }
+
+    /**
+     * Run through the list of configured security roles and add an "is"+Rolename to the model.  The security roles
+     * must also be defined with a <code>&lt;security-role-ref&gt;</code> element in the portlet.xml.
+     * @param req Portlet request
+     * @param model Model object to add security indicators to
+     */
+    private void addSecurityRoleChecksToModel(PortletRequest req, Map<String,Object> model) {
+        PortletPreferences prefs = req.getPreferences();
+        String[] securityRoles = prefs.getValues(PREF_SECURITY_ROLE_NAMES, new String[]{});
+        for (int i = 0; i < securityRoles.length; i++) {
+            model.put("is"+securityRoles[i].replace(" ", "_"), req.isUserInRole(securityRoles[i]));
+        }
     }
 
 }
