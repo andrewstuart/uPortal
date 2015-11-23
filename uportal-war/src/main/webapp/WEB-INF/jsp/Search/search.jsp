@@ -69,18 +69,19 @@ under the License.
 
 <div id="${n}-search" class="search" ng-cloak ng-controller="searchController">
     <header>
+
         <form name="portal-search"
             class="form-horizontal"
             ng-submit="searchFor(chosenPortlet)">
             <div class="form-group form-group-sm">
-                <label class="col-sm-2 control-label" for="search-${n}">Search</label>
-                <div class="col-sm-10">
-                    <input
-                    class="form-control"
-                    type="text"
-                    id="search-${n}"
-                    ng-model="chosenPortlet"
-                    placeholder="Enter search terms"/>
+                <div class="input-group">
+                    <input class="form-control" type="text" id="search-${n}"
+                    aria-label="Search"
+                    placeholder="Enter search terms"
+                    ng-model="chosenPortlet" />
+                    <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-search"></span>
+                    </span>
                 </div>
             </div>
         </form>

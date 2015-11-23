@@ -71,20 +71,19 @@ under the License.
     <form name="search"
         ng-submit="searchFor(chosenPortlet)">
         <div class="form-group form-group-sm">
-          <label class="col-sm-2 control-label" for="search-${n}">Search</label>
-          <div class="col-sm-10">
-              <input
-                  typeahead="portlet.title for portlet in portlets.list | filterAny:{title: $viewValue, description: $viewValue}"
-                  typeahead-template-url="/jasig-widget-portlets/advisor_card_admin/views/portlet-picker.html"
-                  typeahead-focus-first="false"
-                  ng-model="chosenPortlet"
-                  typeahead-on-select="portlets.navigate($item); chosenPortlet = null; $event.preventDefault(); $event.stopPropagation()"
-              class="form-control"
-              type="text"
-              id="search-${n}"
-              placeholder="Enter search terms"
-              />
-          </div>
-        </div>
-    </form>
+            <div class="input-group">
+                <input class="form-control" type="text" id="search-${n}"
+                aria-label="Search"
+                placeholder="Enter search terms"
+                typeahead="portlet.title for portlet in portlets.list | filterAny:{title: $viewValue, description: $viewValue}"
+                typeahead-template-url="/jasig-widget-portlets/advisor_card_admin/views/portlet-picker.html"
+                typeahead-focus-first="false"
+                ng-model="chosenPortlet"
+                typeahead-on-select="portlets.navigate($item); chosenPortlet = null; $event.preventDefault(); $event.stopPropagation()" />
+                <span class="input-group-addon">
+                    <span class="glyphicon glyphicon-search"></span>
+                </span>
+            </div>
+      </div>
+  </form>
 </div>
