@@ -1,0 +1,28 @@
+@import (reference) "colors";
+
+.portal .portlet.search-portlet {
+    padding: 0 10px;
+}
+
+.dropdown-menu {
+    li {
+        &.active .portlet-result {
+            background-color: lighten(@blue2, 20);
+        }
+    }
+
+    .portlet-result {
+        border-radius: 0.5rem;
+
+        background-color: rgba(0, 0, 0, 0.1);
+        color: black;
+    }
+}
+
+.search header {
+    margin: 1rem;
+}
+
+ul.search-results {
+    list-style-type: none;
+}
