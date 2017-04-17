@@ -1,0 +1,12 @@
+version: '2'
+
+services:
+  updb:
+    image: 'andrewstuart/updb:5'
+
+  uportal:
+    image: 'andrewstuart/uportal:5'
+    links:
+    - 'updb:updb'
+    ports:
+    - '8080:8080'
